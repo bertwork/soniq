@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Soniq</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="brand">SONIQ</div>
+      <div id="songCount" class="count">0 songs</div>
+      <button id="benchBtn" class="header-btn">Generate Report</button>
+    </header>
+
+    <div id="songsView" class="layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <section>
+          <h2>Generate songs</h2>
+          <label for="order">Order</label>
+          <select id="order">
+            <option value="random">Random</option>
+            <option value="sorted">Sorted</option>
+            <option value="reverse">Reverse-sorted</option>
+          </select>
+          <div class="size-grid">
+            <button class="size-btn" data-n="1000">1K</button>
+            <button class="size-btn" data-n="10000">10K</button>
+            <button class="size-btn" data-n="30000">30K</button>
+          </div>
+        </section>
+
+        <section id="search">
+          <h2>Search</h2>
+          <div class="row">
+            <span class="row-label">Search by:</span>
+            <label class="radio"
+              ><input type="radio" name="searchBy" value="song_id" checked />
+              Song ID</label
+            >
+            <label class="radio"
+              ><input type="radio" name="searchBy" value="title" /> Title</label
+            >
+          </div>
+          <div class="row">
+            <span class="row-label">Algorithm:</span>
+            <label class="radio"
+              ><input type="radio" name="searchAlgo" value="linear" checked />
+              Linear</label
+            >
+            <label class="radio"
+              ><input type="radio" name="searchAlgo" value="binary" />
+              Binary</label
+            >
+          </div>
+          <input
+            type="text"
+            id="searchText"
+            aria-label="Search text"
+            placeholder="Type a Song ID or title"
+            autocomplete="off"
+          />
+          <p id="searchError" class="error" role="alert" hidden></p>
+          <button id="searchBtn" class="primary">Search</button>
+          <p class="hint">
+            Search is case-insensitive. Binary needs data sorted by the chosen
+            key.
+          </p>
+        </section>
+
+        <section id="sort">
+          <h2>Sort</h2>
+          <div class="two-col">
+            <div>
+              <label for="sortAlgo">Algorithm</label>
+              <select id="sortAlgo">
+                <option value="merge">Merge Sort (fast)</option>
+                <option value="bubble">Bubble Sort (slow)</option>
+              </select>
+            </div>
+            <div>
+              <label for="sortKey">Sort key</label>
+              <select id="sortKey">
+                <option value="song_id">Song ID</option>
+                <option value="title">Title</option>
+                <option value="artist">Artist</option>
+                <option value="album">Album</option>
+                <option value="genre">Genre</option>
+                <option value="year">Year</option>
+                <option value="duration">Duration</option>
+              </select>
+            </div>
+          </div>
+          <button id="sortBtn" class="primary">Sort</button>
+        </section>
+
+        <section>
+          <h2>Last operation</h2>
+          <div id="lastOp" class="last-op">
+            <strong id="lastOpTitle">&ndash;</strong>
+            <p id="lastOpDetail">No operations yet.</p>
+            <dl id="lastOpStats" class="stats" hidden></dl>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main">
+        <div
+          id="runPanel"
+          class="run-panel"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <div class="spinner" aria-hidden="true"></div>
+          <h2 id="runTitle">Working...</h2>
+          <div id="runTimer" class="run-timer">0.000 s</div>
+          <p id="runNote"></p>
+        </div>
+
+        <!-- Song Table -->
+        <div id="tableWrap" class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Song ID</th>
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Album</th>
+                <th>Genre</th>
+                <th>Year</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="songBody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <!-- Benchmark View -->
+    <section id="benchView" class="bench" hidden>
+      <div class="bench-config">
+        <h2>Benchmark configuration</h2>
+        <div class="check-row">
+          <span class="row-label">Sizes:</span>
+          <label class="check"
+            ><input type="checkbox" name="bSize" value="1000" checked />
+            1,000</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bSize" value="10000" checked />
+            10,000</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bSize" value="30000" checked />
+            30,000</label
+          >
+        </div>
+        <div class="check-row">
+          <span class="row-label">Orders:</span>
+          <label class="check"
+            ><input type="checkbox" name="bOrder" value="random" checked />
+            Random</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bOrder" value="sorted" checked />
+            Sorted</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bOrder" value="reverse" checked />
+            Reverse-Sorted</label
+          >
+        </div>
+        <div class="check-row">
+          <span class="row-label">Algorithms:</span>
+          <label class="check"
+            ><input type="checkbox" name="bAlgo" value="linear" checked />
+            Linear Search</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bAlgo" value="binary" checked />
+            Binary Search</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bAlgo" value="bubble" checked />
+            Bubble Sort</label
+          >
+          <label class="check"
+            ><input type="checkbox" name="bAlgo" value="merge" checked /> Merge
+            Sort</label
+          >
+        </div>
+      </div>
+
+      <div class="bench-actions">
+        <button id="benchRun" class="run-btn">&#9654; Run Benchmark</button>
+        <button id="benchStop" class="btn-secondary" disabled>
+          &#9632; Stop
+        </button>
+        <button id="benchExport" class="btn-secondary" disabled>
+          Export CSV
+        </button>
+      </div>
+
+      <progress id="benchProgress" value="0" max="100"></progress>
+      <p id="benchStatus" class="bench-status">
+        Idle. Choose a configuration and click Run.
+      </p>
+
+      <div class="table-wrap">
+        <table class="bench-table">
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Rows</th>
+              <th>Input Order</th>
+              <th>Comparisons</th>
+              <th>Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="benchBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer id="statusBar" class="statusbar">SONIQ ready.</footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
